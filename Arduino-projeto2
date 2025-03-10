@@ -1,0 +1,28 @@
+/*
+  Código Arduino: Aciona LED por 3 segundos ao detectar mão no sensor.
+  Conexões:
+    - Sensor de proximidade (ou touch) conectado ao pino digital 2.
+    - LED conectado ao pino digital 13 (pode ser ajustado conforme necessário).
+*/
+
+const int sensorPin = 2;  // Pino onde o sensor está conectado
+const int ledPin = 13;    // Pino onde o LED está conectado
+
+void setup() {
+  pinMode(sensorPin, INPUT);   // Configura o pino do sensor como entrada
+  pinMode(ledPin, OUTPUT);     // Configura o pino do LED como saída
+  Serial.begin(9600);          // Inicializa a comunicação serial para debug
+}
+
+void loop() {
+  int sensorState = digitalRead(sensorPin);  // Lê o estado do sensor
+  
+  // Se o sensor detectar a mão (assumindo que HIGH indica detecção)
+  if (sensorState == HIGH) {
+    Serial.println("Mão detectada! LED ligado por 3 segundos...");
+    digitalWrite(ledPin, HIGH);  // Liga o LED
+    delay(3000);                 // Mantém o LED aceso por 3 segundos
+    digitalWrite(ledPin, LOW);   // Desliga o LED
+    delay(500);                  // Pequena pausa para evitar re-trigger imediato
+  }
+}
