@@ -5,6 +5,9 @@
 #define pino_trigger 42
 #define pino_echo 4
 
+// Define o pino para o LED
+#define pino_led 10
+
 Servo meuServo;                   // Cria o objeto servo
 Ultrasonic ultrasonic(pino_trigger, pino_echo);  // Inicializa o sensor ultrassônico
 
@@ -12,11 +15,14 @@ void setup() {
     Serial.begin(9600);           // Inicializa a comunicação serial
     Serial.println("Lendo dados do sensor...");
 
-    meuServo.attach(7);           // Associa o servo motor ao pino digital 6
+    meuServo.attach(7);           // Associa o servo motor ao pino digital 7
     meuServo.write(0);            // Define a posição inicial do servo em 0 graus
+
+    pinMode(pino_led, OUTPUT);    // Define o pino do LED como saída
+    digitalWrite(pino_led, LOW);  // Garante que o LED esteja inicialmente desligado
 }
 
-void loop() 
+void loop() {
     // Leitura do sensor ultrassônico
     long microsec = ultrasonic.timing();
     float distancia_cm = ultrasonic.convert(microsec, Ultrasonic::CM);
@@ -24,12 +30,23 @@ void loop()
     Serial.print("Distância em cm: ");
     Serial.println(distancia_cm);
 
-    // Verifica se a distância é menor ou igual a 25 cm
-    if (distancia_cm <= 25.0) {
-        meuServo.write(90);       // Move o servo para 90 graus
-        delay(10000);             // Aguarda 10 segundos (10000 milissegundos)
+    // Verifica se a distância é menor ou igual a 75 cm
+    if (distancia_cm <= 100.0) {
+        meuServo.write(150);       // Move o servo para 140 graus
+        piscarLED(5000);         // Pisca o LED por 5 segundos
         meuServo.write(0);        // Retorna o servo para 0 graus
     }
 
-    delay(1000); // Aguarda 1 segundo antes de realizar uma nova leitura
+    delay(50); // Aguarda 1 segundo antes de realizar uma nova leitura
+}
+
+// Função para piscar o LED por um determinado período (em milissegundos)
+void piscarLED(unsigned long duracao) {
+    unsigned long tempo_inicial = millis();
+    while (millis() - tempo_inicial < duracao) {
+        digitalWrite(pino_led, HIGH);  // Liga o LED
+        delay(500);                    // Aguarda 500 milissegundos
+        digitalWrite(pino_led, LOW);   // Desliga o LED
+        delay(500);                    // Aguarda 500 milissegundos
+    }
 }
