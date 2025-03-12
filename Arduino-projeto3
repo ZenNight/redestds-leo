@@ -1,59 +1,35 @@
-// Programa: Controle Integrado do Servo Motor e Sensor Ultrassônico
-// Autor: MakerHero adaptado para integração
-// Descrição: Esse código controla um servo motor conectado ao pino 6 e 
-// lê as medidas de distância do sensor ultrassônico HC-SR04 conectado aos pinos 4 (trigger) e 5 (echo).
-
 #include <Servo.h>         // Biblioteca para controle do servo
 #include <Ultrasonic.h>    // Biblioteca para controle do sensor ultrassônico
 
 // Define os pinos para o sensor ultrassônico
-#define pino_trigger 4
-#define pino_echo 5
+#define pino_trigger 42
+#define pino_echo 4
 
 Servo meuServo;                   // Cria o objeto servo
 Ultrasonic ultrasonic(pino_trigger, pino_echo);  // Inicializa o sensor ultrassônico
-int pos;                          // Variável para posição do servo
 
 void setup() {
     Serial.begin(9600);           // Inicializa a comunicação serial
     Serial.println("Lendo dados do sensor...");
 
-    meuServo.attach(6);           // Associa o servo motor ao pino digital 6
+    meuServo.attach(7);           // Associa o servo motor ao pino digital 6
     meuServo.write(0);            // Define a posição inicial do servo em 0 graus
 }
 
-void loop() {
-    // Movimento do servo de 0 a 90 graus
-    for (pos = 0; pos < 90; pos++) {
-        meuServo.write(pos);
-        delay(15);
-    }
-    delay(1000);
-
+void loop() 
     // Leitura do sensor ultrassônico
     long microsec = ultrasonic.timing();
-    float cmMsec = ultrasonic.convert(microsec, Ultrasonic::CM);
-    float inMsec = ultrasonic.convert(microsec, Ultrasonic::IN);
-    Serial.print("Distancia em cm: ");
-    Serial.print(cmMsec);
-    Serial.print(" - Distancia em polegadas: ");
-    Serial.println(inMsec);
-    delay(1000);
+    float distancia_cm = ultrasonic.convert(microsec, Ultrasonic::CM);
 
-    // Movimento do servo de 90 a 0 graus
-    for (pos = 90; pos >= 0; pos--) {
-        meuServo.write(pos);
-        delay(5);
+    Serial.print("Distância em cm: ");
+    Serial.println(distancia_cm);
+
+    // Verifica se a distância é menor ou igual a 25 cm
+    if (distancia_cm <= 25.0) {
+        meuServo.write(90);       // Move o servo para 90 graus
+        delay(10000);             // Aguarda 10 segundos (10000 milissegundos)
+        meuServo.write(0);        // Retorna o servo para 0 graus
     }
-    delay(1000);
 
-    // Nova leitura do sensor ultrassônico
-    microsec = ultrasonic.timing();
-    cmMsec = ultrasonic.convert(microsec, Ultrasonic::CM);
-    inMsec = ultrasonic.convert(microsec, Ultrasonic::IN);
-    Serial.print("Distancia em cm: ");
-    Serial.print(cmMsec);
-    Serial.print(" - Distancia em polegadas: ");
-    Serial.println(inMsec);
-    delay(1000);
+    delay(1000); // Aguarda 1 segundo antes de realizar uma nova leitura
 }
