@@ -31,8 +31,8 @@ void loop() {
     Serial.println(distancia_cm);
 
     // Verifica se a distância é menor ou igual a 75 cm
-    if (distancia_cm <= 100.0) {
-        meuServo.write(150);       // Move o servo para 140 graus
+    if (distancia_cm <= 30.0) {
+        meuServo.write(120);       // Move o servo para 140 graus
         piscarLED(5000);         // Pisca o LED por 5 segundos
         meuServo.write(0);        // Retorna o servo para 0 graus
     }
