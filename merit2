@@ -3,6 +3,8 @@ from tkinter import ttk, messagebox, filedialog
 from datetime import datetime
 import csv
 import os
+import ctypes
+import sys
 import pandas as pd
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -10,18 +12,24 @@ from uuid import uuid4
 from faker import Faker
 from PyPDF2 import PdfMerger
 
-root = tk.Tk()
-root.tk.call("source", "Azure-ttk-theme-main")  # Path to the azure.tcl file
-root.tk.call("set_theme", "light")  # or "dark"
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+if not is_admin():
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+    sys.exit()
 
 class AttendanceSystem:
     def __init__(self, root):
         self.fake = Faker('pt_BR')
         self.root = root
-        self.root.title("Presence Merit 3.0")
-        self.root.geometry("1200x800")
+        self.root.title("Presence Merit 2.0")
+        self.root.geometry("1280x800")
         self.style = ttk.Style()
-        self.style.theme_use('azure')
+        self.style.theme_use('vista')
         self.output_folder = os.path.expanduser("~/Documents/PresenceMerit")
         self.daily_receipts = []
         self.cursos = self.criar_cursos_com_alunos()
@@ -334,5 +342,7 @@ class AttendanceSystem:
 
 if __name__ == "__main__":
     root = tk.Tk()
+    root.tk.call("source", "Azure-ttk-theme-main/azure.tcl")  # Fixed path
+    root.tk.call("set_theme", "light")
     app = AttendanceSystem(root)
     root.mainloop()
