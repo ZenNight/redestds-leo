@@ -1,0 +1,140 @@
+import random
+
+class Minesweeper:
+    def __init__(self, width=10, height=10, num_mines=10):
+        self.width = width
+        self.height = height
+        self.num_mines = num_mines
+        self.mines = [[False] * width for _ in range(height)]
+        self.numbers = [[0] * width for _ in range(height)]
+        self.visible = [['H'] * width for _ in range(height)]
+        self.game_over = False
+        self.flags = set()
+        self.first_move = True
+
+    def calculate_numbers(self):
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.mines[y][x]:
+                    continue
+                count = 0
+                for dx in (-1, 0, 1):
+                    for dy in (-1, 0, 1):
+                        if dx == 0 and dy == 0:
+                            continue
+                        nx, ny = x + dx, y + dy
+                        if 0 <= nx < self.width and 0 <= ny < self.height:
+                            count += self.mines[ny][nx]
+                self.numbers[y][x] = count
+
+    def reveal(self, x, y):
+        if self.game_over or self.visible[y][x] in ('F', 'R'):
+            return
+
+        if self.first_move:
+            self._generate_mines(x, y)
+            self.first_move = False
+
+        if self.mines[y][x]:
+            self.game_over = True
+            return
+
+        stack = [(x, y)]
+        while stack:
+            x, y = stack.pop()
+            if not (0 <= x < self.width and 0 <= y < self.height):
+                continue
+            if self.visible[y][x] != 'H':
+                continue
+            
+            self.visible[y][x] = 'R'
+            if self.numbers[y][x] == 0:
+                for dx in (-1, 0, 1):
+                    for dy in (-1, 0, 1):
+                        if dx == 0 and dy == 0:
+                            continue
+                        stack.append((x + dx, y + dy))
+
+    def _generate_mines(self, x, y):
+        available = [(i, j) for i in range(self.width) 
+                    for j in range(self.height) if (i, j) != (x, y)]
+        mines = random.sample(available, self.num_mines)
+        for x, y in mines:
+            self.mines[y][x] = True
+        self.calculate_numbers()
+
+    def toggle_flag(self, x, y):
+        if self.game_over or self.visible[y][x] == 'R':
+            return
+        if self.visible[y][x] == 'H':
+            if len(self.flags) < self.num_mines:
+                self.visible[y][x] = 'F'
+                self.flags.add((x, y))
+        else:
+            self.visible[y][x] = 'H'
+            self.flags.remove((x, y))
+
+    def check_win(self):
+        revealed_safe = sum(
+            1 for y in range(self.height) 
+            for x in range(self.width) 
+            if not self.mines[y][x] and self.visible[y][x] == 'R'
+        )
+        return revealed_safe == self.width * self.height - self.num_mines
+
+    def print_board(self, show_mines=False):
+        print("\n   " + " ".join(f"{i:2}" for i in range(self.width)))
+        for y in range(self.height):
+            row = []
+            for x in range(self.width):
+                if show_mines and self.mines[y][x]:
+                    row.append(" *")
+                elif self.visible[y][x] == 'F':
+                    row.append(" F")
+                elif self.visible[y][x] == 'R':
+                    num = self.numbers[y][x]
+                    row.append(f" {num}" if num > 0 else "  ")
+                else:
+                    row.append(" .")
+            print(f"{y:2} " + "".join(row))
+
+def main():
+    print("Welcome to Minesweeper!")
+    width = int(input("Enter board width: "))
+    height = int(input("Enter board height: "))
+    num_mines = int(input("Enter number of mines: "))
+
+    game = Minesweeper(width, height, num_mines)
+    
+    while not game.game_over:
+        game.print_board()
+        try:
+            parts = input("Enter command (r/f x y): ").lower().split()
+            if len(parts) != 3:
+                raise ValueError
+            cmd, x, y = parts
+            x, y = int(x), int(y)
+            if not (0 <= x < width and 0 <= y < height):
+                raise ValueError
+        except ValueError:
+            print("Invalid input! Use format: [r/f] [x] [y]")
+            continue
+
+        if cmd == 'r':
+            game.reveal(x, y)
+            if game.mines[y][x]:
+                print("BOOM! Mine hit. Game Over!")
+                game.game_over = True
+        elif cmd == 'f':
+            game.toggle_flag(x, y)
+        else:
+            print("Invalid command. Use 'r' or 'f'")
+
+        if game.check_win():
+            print("Congratulations! You've won!")
+            game.game_over = True
+
+    game.print_board(show_mines=True)
+
+if __name__ == "__main__":
+    main()
